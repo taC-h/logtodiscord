@@ -51,6 +51,9 @@ async fn start(ctx: &Context, msg: &Message) -> CommandResult {
         .stdout(Stdio::piped())
         .spawn().unwrap();
     let stdout = log.stdout.take().unwrap();
+    if let Some(old) = ctx.data.write().await.remove::<SenderKey>() {
+        old.abort();
+    }
     let handle  = tokio::spawn(async move {
         let mut reader = BufReader::new(stdout).lines();
         while let Some(line) = reader.next_line().await.unwrap() {
